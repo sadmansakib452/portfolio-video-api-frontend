@@ -9,7 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import Logo from '../../assets/logo/logo.png';
 
 const Landing = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -25,8 +25,7 @@ const Landing = () => {
   // Handle sign out
   const handleSignOut = async () => {
     try {
-      await signOut();
-      setIsMobileMenuOpen(false);
+     
     } catch (error) {
       console.error('Sign out error:', error);
     }

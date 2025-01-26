@@ -42,7 +42,7 @@ export function useAuth() {
     delete apiClient.defaults.headers.common['Authorization'];
     
     // Navigate to login
-    navigate('/auth/signin');
+    navigate('/');
   }, [navigate, clearAuth]);
 
   const isAuthenticated = useCallback(() => {

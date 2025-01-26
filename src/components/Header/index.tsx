@@ -9,31 +9,31 @@ const Header = (props: {
 }) => {
   return (
     <header className="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
-      <div className="flex w-full items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11">
+      <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11">
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Hamburger Toggle BTN */}
+          {/* Hamburger Button */}
           <button
             aria-controls="sidebar"
             onClick={(e) => {
               e.stopPropagation();
               props.setSidebarOpen(!props.sidebarOpen);
             }}
-            className="block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden"
+            className="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden"
           >
             <span className="relative block h-5.5 w-5.5 cursor-pointer">
-              <span className="absolute right-0 h-full w-full">
+              <span className="du-block absolute right-0 h-full w-full">
                 <span
-                  className={`relative top-0 left-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-[0] duration-200 ease-in-out dark:bg-white ${
+                  className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-[0] duration-200 ease-in-out dark:bg-white ${
                     !props.sidebarOpen && '!w-full delay-300'
                   }`}
                 ></span>
                 <span
-                  className={`relative top-0 left-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-150 duration-200 ease-in-out dark:bg-white ${
+                  className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-150 duration-200 ease-in-out dark:bg-white ${
                     !props.sidebarOpen && '!w-full delay-400'
                   }`}
                 ></span>
                 <span
-                  className={`relative top-0 left-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-200 duration-200 ease-in-out dark:bg-white ${
+                  className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-200 duration-200 ease-in-out dark:bg-white ${
                     !props.sidebarOpen && '!w-full delay-500'
                   }`}
                 ></span>
@@ -52,15 +52,10 @@ const Header = (props: {
               </span>
             </span>
           </button>
-
-          {/* Logo */}
-          <Link className="block flex-shrink-0 lg:hidden" to="/dashboard">
-            <img src={Logo} alt="Logo" className="h-10 w-auto" />
-          </Link>
         </div>
 
         {/* Right Side Elements */}
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-3 2xsm:gap-7">
           <DarkModeSwitcher />
           <div className="h-[45px] w-[1px] bg-stroke dark:bg-strokedark"></div>
           <DropdownUser />

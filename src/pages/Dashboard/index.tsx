@@ -57,10 +57,17 @@ const Dashboard = () => {
 
   return (
     <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-      <Breadcrumb pageName="Dashboard" />
+      <div className="flex items-center">
+        <h2 className="text-2xl font-semibold text-black dark:text-white">
+          Dashboard
+        </h2>
+        <div className="ml-auto">
+          <Breadcrumb pageName=" " />
+        </div>
+      </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
         <div className="col-span-1">
           <VideoStatsCard />
         </div>

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll';
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '../../hooks/useAuthStore';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { useAuth } from '../../hooks/useAuth';
 import {
   ChevronDownIcon,
@@ -12,7 +12,8 @@ import headerimage from '../../assets/backgroundimages/Headerbackground.jpeg';
 import logoimage from '../../assets/logo/logo.png';
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuthContext();
+  const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [barCount, setBarCount] = useState(150);
 
@@ -33,6 +34,12 @@ const Header = () => {
     return () => window.removeEventListener('resize', updateBarCount);
   }, []);
 
+  // Handle sign out
+  const handleSignOut = () => {
+    logout();
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div
       style={{
@@ -46,18 +53,18 @@ const Header = () => {
     >
       {/* Navigation Bar */}
       <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
-        <header className="flex flex-col sm:flex-row justify-between items-center py-4 lg:py-6 gap-4 sm:gap-0">
-          {/* Logo */}
-          <div className="w-[200px] sm:w-[250px] lg:w-[300px]">
+        <header className="flex items-center justify-between py-4 lg:py-6">
+          {/* Part 1: Logo (Left) - Increased mobile size */}
+          <div className="w-[150px] sm:w-[180px] lg:w-[250px]">
             <Link to="/">
               <img className="w-full" src={logoimage} alt="Dream Radio Logo" />
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Part 2: Navigation Links (Middle) */}
           <nav
             style={{ fontFamily: 'Gotham' }}
-            className="hidden md:flex space-x-6 sm:space-x-8 lg:space-x-11 text-sm sm:text-xl"
+            className="hidden md:flex items-center space-x-6 sm:space-x-8 lg:space-x-11 text-sm sm:text-xl"
           >
             <ScrollLink
               to="work"
@@ -92,43 +99,47 @@ const Header = () => {
             {user && (
               <Link
                 to="/dashboard"
-                className="hover:text-yellow-400 transition-colors"
+                className="hover:text-yellow-400 transition-colors cursor-pointer"
               >
                 DASHBOARD
               </Link>
             )}
           </nav>
 
-          {/* Desktop Auth */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Part 3: Auth Buttons (Right) */}
+          <div
+            style={{ fontFamily: 'Gotham' }}
+            className="hidden md:flex items-center space-x-6 sm:space-x-8 lg:space-x-11 text-sm sm:text-xl"
+          >
             {user ? (
               <button
-                onClick={signOut}
-                className="text-white hover:text-yellow-400 transition-colors"
+                onClick={handleSignOut}
+                className="hover:text-yellow-400 transition-colors cursor-pointer"
+                type="button"
               >
-                Sign Out
+                SIGN OUT
               </button>
             ) : (
               <>
                 <Link
                   to="/auth/signin"
-                  className="text-white hover:text-yellow-400 transition-colors"
+                  className="hover:text-yellow-400 transition-colors cursor-pointer"
                 >
-                  Sign In
+                  SIGN IN
                 </Link>
                 <Link
                   to="/auth/signup"
-                  className="px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-500 transition-colors rounded-md"
+                  className="hover:text-yellow-400 transition-colors cursor-pointer"
                 >
-                  Sign Up
+                  SIGN UP
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button - Updated position */}
           <button
-            className="md:hidden p-2 text-white"
+            className="md:hidden p-2 text-white hover:text-yellow-400 transition-colors"
             onClick={() => setIsMobileMenuOpen(true)}
           >
             <Bars3Icon className="h-6 w-6" />
@@ -136,40 +147,42 @@ const Header = () => {
         </header>
       </div>
 
-      {/* Hero Section */}
+      {/* Hero Section - Adjusted vertical position */}
       <main
         style={{ fontFamily: 'Gotham' }}
-        className="w-full max-w-[1400px] mx-auto sm:px-6 pt-[30%] sm:pt-[15%] lg:pt-[20%]"
+        className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 flex flex-col items-center lg:items-start pt-[25vh] sm:pt-[20vh] md:pt-[25vh] lg:pt-[30vh]"
       >
         <div
           style={{ fontFamily: 'Gotham' }}
-          className="text-center lg:text-left"
+          className="text-center lg:text-left w-full"
         >
-          <h1 className="lg:text-5xl md:text-4xl sm:text-3xl text-xl">
+          <h1 className="text-[40px] leading-tight sm:text-4xl md:text-5xl lg:text-5xl mb-8 sm:mb-10">
             Where words leave off,{' '}
             <span className="text-yellow-400">music</span> begins.
           </h1>
         </div>
 
-        {/* Soundwave Animation */}
-        <div className="mt-6 overflow-hidden w-full max-w-[90vw] sm:max-w-[80vw] md:max-w-[70vw] lg:max-w-[60vw] flex justify-center lg:justify-start">
-          <div className="flex items-center gap-[1px] sm:gap-[4px]">
-            {[...Array(barCount)].map((_, index) => (
-              <div
-                key={index}
-                className="rounded-[2px] bg-purple-400"
-                style={{
-                  width: '3px',
-                  height: `${
-                    Math.random() * (window.innerWidth < 640 ? 15 : 20) + 8
-                  }px`,
-                  animation: 'wave 1.2s ease-in-out infinite',
-                  animationDelay: `${
-                    index * (window.innerWidth < 640 ? 100 : 50)
-                  }ms`,
-                }}
-              />
-            ))}
+        {/* Soundwave Animation - Follows text positioning */}
+        <div className="w-full flex justify-center lg:justify-start">
+          <div className="overflow-hidden w-full max-w-[90vw] sm:max-w-[80vw] md:max-w-[70vw] lg:max-w-[60vw]">
+            <div className="flex items-center gap-[1px] sm:gap-[4px] justify-center lg:justify-start">
+              {[...Array(barCount)].map((_, index) => (
+                <div
+                  key={index}
+                  className="rounded-[2px] bg-purple-400"
+                  style={{
+                    width: '3px',
+                    height: `${
+                      Math.random() * (window.innerWidth < 640 ? 15 : 20) + 8
+                    }px`,
+                    animation: 'wave 1.2s ease-in-out infinite',
+                    animationDelay: `${
+                      index * (window.innerWidth < 640 ? 100 : 50)
+                    }ms`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </main>
@@ -181,7 +194,7 @@ const Header = () => {
         } transition-transform duration-300 ease-in-out md:hidden z-50`}
       >
         <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <div className="w-[150px]">
+          <div className="w-[180px]">
             <img src={logoimage} alt="Dream Radio Logo" className="w-full" />
           </div>
           <button
@@ -226,25 +239,23 @@ const Header = () => {
           >
             CONTACT
           </ScrollLink>
-          {user && (
-            <Link
-              to="/dashboard"
-              className="block text-white hover:text-yellow-400 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              DASHBOARD
-            </Link>
-          )}
           {user ? (
-            <button
-              onClick={() => {
-                signOut();
-                setIsMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-white hover:text-yellow-400 transition-colors"
-            >
-              Sign Out
-            </button>
+            <>
+              <Link
+                to="/dashboard"
+                className="block text-white hover:text-yellow-400 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                DASHBOARD
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="block w-full text-left text-white hover:text-yellow-400 transition-colors"
+                type="button"
+              >
+                SIGN OUT
+              </button>
+            </>
           ) : (
             <>
               <Link
@@ -252,21 +263,21 @@ const Header = () => {
                 className="block text-white hover:text-yellow-400 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Sign In
+                SIGN IN
               </Link>
               <Link
                 to="/auth/signup"
-                className="block px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-500 transition-colors rounded-md"
+                className="block text-white hover:text-yellow-400 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Sign Up
+                SIGN UP
               </Link>
             </>
           )}
         </nav>
       </div>
 
-      {/* Animation Styles */}
+      {/* Animation Styles - Updated for better mobile responsiveness */}
       <style>{`
         @keyframes wave {
           0%, 100% {
