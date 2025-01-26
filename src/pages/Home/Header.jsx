@@ -3,16 +3,18 @@ import { Link as ScrollLink } from 'react-scroll';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../hooks/useAuthStore';
 import { useAuth } from '../../hooks/useAuth';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import {
+  ChevronDownIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import headerimage from '../../assets/backgroundimages/Headerbackground.jpeg';
 import logoimage from '../../assets/logo/logo.png';
 
 const Header = () => {
-  // State to store number of bars based on screen width
+  const { user, signOut } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [barCount, setBarCount] = useState(150);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { user } = useAuthStore();
-  const { logout } = useAuth();
 
   // Update bar count based on screen width
   useEffect(() => {
@@ -26,41 +28,10 @@ const Header = () => {
       }
     };
 
-    // Initial setup
     updateBarCount();
-
-    // Add resize listener
     window.addEventListener('resize', updateBarCount);
-
-    // Cleanup
     return () => window.removeEventListener('resize', updateBarCount);
   }, []);
-
-  // Add toggle function
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  // Enhanced smooth scroll function
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const headerOffset = 100; // Adjust this value based on your header height
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.scrollY - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-
-      // Alternative scrolling method for better browser support
-      // element.scrollIntoView({
-      //   behavior: 'smooth',
-      //   block: 'start'
-      // });
-    }
-  };
 
   return (
     <div
@@ -75,16 +46,18 @@ const Header = () => {
     >
       {/* Navigation Bar */}
       <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
-        <header className="flex justify-between items-center py-4 lg:py-6">
-          {/* Left: Logo */}
+        <header className="flex flex-col sm:flex-row justify-between items-center py-4 lg:py-6 gap-4 sm:gap-0">
+          {/* Logo */}
           <div className="w-[200px] sm:w-[250px] lg:w-[300px]">
-            <img className="w-full" src={logoimage} alt="Dream Radio Logo" />
+            <Link to="/">
+              <img className="w-full" src={logoimage} alt="Dream Radio Logo" />
+            </Link>
           </div>
 
-          {/* Center: Navigation */}
+          {/* Desktop Navigation */}
           <nav
             style={{ fontFamily: 'Gotham' }}
-            className="absolute left-1/2 transform -translate-x-1/2 flex space-x-6 sm:space-x-8 lg:space-x-11 text-sm sm:text-xl"
+            className="hidden md:flex space-x-6 sm:space-x-8 lg:space-x-11 text-sm sm:text-xl"
           >
             <ScrollLink
               to="work"
@@ -116,61 +89,50 @@ const Header = () => {
             >
               CONTACT
             </ScrollLink>
+            {user && (
+              <Link
+                to="/dashboard"
+                className="hover:text-yellow-400 transition-colors"
+              >
+                DASHBOARD
+              </Link>
+            )}
           </nav>
 
-          {/* Right: Dropdown Icon */}
-          <div className="relative">
-            <button
-              onClick={toggleDropdown}
-              className="p-2 hover:text-yellow-400 transition-colors rounded-full"
-              aria-label="Menu"
-            >
-              <ChevronDownIcon
-                className={`h-6 w-6 transition-transform duration-200 ${
-                  isDropdownOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
-
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-black/90 backdrop-blur-sm">
-                <div className="py-1" role="menu">
-                  {user ? (
-                    <>
-                      <Link
-                        to="/dashboard"
-                        className="block px-4 py-2 text-sm text-white hover:text-yellow-400 transition-colors"
-                        role="menuitem"
-                        onClick={toggleDropdown}
-                      >
-                        Dashboard
-                      </Link>
-                      <button
-                        onClick={() => {
-                          logout();
-                          toggleDropdown();
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-white hover:text-yellow-400 transition-colors"
-                        role="menuitem"
-                      >
-                        Logout
-                      </button>
-                    </>
-                  ) : (
-                    <Link
-                      to="/auth/signin"
-                      className="block px-4 py-2 text-sm text-white hover:text-yellow-400 transition-colors"
-                      role="menuitem"
-                      onClick={toggleDropdown}
-                    >
-                      Sign In
-                    </Link>
-                  )}
-                </div>
-              </div>
+          {/* Desktop Auth */}
+          <div className="hidden md:flex items-center space-x-4">
+            {user ? (
+              <button
+                onClick={signOut}
+                className="text-white hover:text-yellow-400 transition-colors"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <>
+                <Link
+                  to="/auth/signin"
+                  className="text-white hover:text-yellow-400 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/auth/signup"
+                  className="px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-500 transition-colors rounded-md"
+                >
+                  Sign Up
+                </Link>
+              </>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-white"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Bars3Icon className="h-6 w-6" />
+          </button>
         </header>
       </div>
 
@@ -209,45 +171,128 @@ const Header = () => {
               />
             ))}
           </div>
-          <style>{`
-            html {
-              scroll-behavior: smooth;
-              scroll-padding-top: 80px; /* Adjust based on your header height */
-            }
-
-            @media screen and (prefers-reduced-motion: reduce) {
-              html {
-                scroll-behavior: auto;
-              }
-            }
-
-            @keyframes wave {
-              0%, 100% {
-                transform: scaleY(1);
-              }
-              50% {
-                transform: scaleY(2);
-              }
-            }
-            @media (max-width: 639px) {
-              .h-screen {
-                height: 100vh;
-                min-height: 600px;
-              }
-            }
-            @media (min-width: 640px) {
-              .soundwave-bar {
-                width: 2px;
-              }
-            }
-            @media (min-width: 1024px) {
-              .soundwave-bar {
-                width: 3px;
-              }
-            }
-          `}</style>
         </div>
       </main>
+
+      {/* Mobile Menu */}
+      <div
+        className={`fixed inset-y-0 right-0 w-full bg-black transform ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        } transition-transform duration-300 ease-in-out md:hidden z-50`}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <div className="w-[150px]">
+            <img src={logoimage} alt="Dream Radio Logo" className="w-full" />
+          </div>
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="p-2 text-white hover:text-yellow-400"
+          >
+            <XMarkIcon className="h-6 w-6" />
+          </button>
+        </div>
+
+        <nav className="px-4 py-6 space-y-4">
+          <ScrollLink
+            to="work"
+            spy={true}
+            smooth={true}
+            offset={-100}
+            duration={800}
+            className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            WORK
+          </ScrollLink>
+          <ScrollLink
+            to="about"
+            spy={true}
+            smooth={true}
+            offset={-100}
+            duration={800}
+            className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            ABOUT
+          </ScrollLink>
+          <ScrollLink
+            to="contact"
+            spy={true}
+            smooth={true}
+            offset={-100}
+            duration={800}
+            className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            CONTACT
+          </ScrollLink>
+          {user && (
+            <Link
+              to="/dashboard"
+              className="block text-white hover:text-yellow-400 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              DASHBOARD
+            </Link>
+          )}
+          {user ? (
+            <button
+              onClick={() => {
+                signOut();
+                setIsMobileMenuOpen(false);
+              }}
+              className="block w-full text-left text-white hover:text-yellow-400 transition-colors"
+            >
+              Sign Out
+            </button>
+          ) : (
+            <>
+              <Link
+                to="/auth/signin"
+                className="block text-white hover:text-yellow-400 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/auth/signup"
+                className="block px-4 py-2 bg-yellow-400 text-black hover:bg-yellow-500 transition-colors rounded-md"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+        </nav>
+      </div>
+
+      {/* Animation Styles */}
+      <style>{`
+        @keyframes wave {
+          0%, 100% {
+            transform: scaleY(1);
+          }
+          50% {
+            transform: scaleY(2);
+          }
+        }
+        @media (max-width: 639px) {
+          .h-screen {
+            height: 100vh;
+            min-height: 600px;
+          }
+        }
+        @media (min-width: 640px) {
+          .soundwave-bar {
+            width: 2px;
+          }
+        }
+        @media (min-width: 1024px) {
+          .soundwave-bar {
+            width: 3px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
