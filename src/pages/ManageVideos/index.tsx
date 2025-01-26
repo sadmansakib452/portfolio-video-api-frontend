@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import Breadcrumb from '../../components/Breadcrumb';
@@ -6,6 +6,7 @@ import VideoList from '../../components/Videos/VideoList';
 import EditVideoModal from '../../components/Videos/EditVideoModal';
 import { VideoService } from '../../services/videoService';
 import { Video } from '../../types/video';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 const ManageVideos = () => {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
@@ -55,6 +56,33 @@ const ManageVideos = () => {
     },
   });
 
+  // Effect to handle sidebar and header visibility
+  useEffect(() => {
+    const sidebar = document.querySelector('aside');
+    const header = document.querySelector('header');
+
+    if (isEditModalOpen) {
+      // Hide sidebar on desktop only
+      if (window.innerWidth >= 1024) {
+        // lg breakpoint
+        sidebar?.classList.add('lg:hidden');
+      }
+      // Hide header on all devices
+      header?.classList.add('hidden');
+    } else {
+      // Restore sidebar visibility
+      sidebar?.classList.remove('lg:hidden');
+      // Restore header visibility
+      header?.classList.remove('hidden');
+    }
+
+    // Cleanup
+    return () => {
+      sidebar?.classList.remove('lg:hidden');
+      header?.classList.remove('hidden');
+    };
+  }, [isEditModalOpen]);
+
   const handleEdit = (video: Video) => {
     setSelectedVideo(video);
     setIsEditModalOpen(true);
@@ -68,6 +96,12 @@ const ManageVideos = () => {
 
   const handleUpdate = async (videoId: string, formData: FormData) => {
     updateMutation.mutate({ videoId, formData });
+  };
+
+  // Function to handle modal close
+  const handleModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedVideo(null);
   };
 
   if (isLoading) {
@@ -104,15 +138,13 @@ const ManageVideos = () => {
         onDelete={handleDelete}
       />
 
-      {/* Edit Modal */}
+      {/* Edit Video Modal - Single Modal Implementation */}
       <EditVideoModal
         video={selectedVideo}
         isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedVideo(null);
-        }}
+        onClose={handleModalClose}
         onUpdate={handleUpdate}
+        className="z-[9999]" // Ensure highest z-index
       />
     </div>
   );
