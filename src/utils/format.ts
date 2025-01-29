@@ -19,25 +19,30 @@ export const formatBytes = (bytes: number): string => {
 };
 
 export const formatDate = (dateString: string | undefined): string => {
-  if (!dateString) return 'N/A';
+  if (!dateString) {
+    console.log('formatDate received undefined date');
+    return 'N/A';
+  }
   
   try {
+    console.log('Formatting date:', dateString);
     const date = new Date(dateString);
     
-    // Check if date is valid
     if (isNaN(date.getTime())) {
-      console.error('Invalid date:', dateString);
+      console.log('Invalid date:', dateString);
       return 'N/A';
     }
-
-    return new Intl.DateTimeFormat('en-US', {
+    
+    const formatted = new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: true,
     }).format(date);
+    
+    console.log('Formatted date:', formatted);
+    return formatted;
   } catch (error) {
     console.error('Date formatting error:', error);
     return 'N/A';

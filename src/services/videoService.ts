@@ -15,18 +15,27 @@ export const VideoService = {
     return { totalVideos };
   },
 
-  async getVideos(page = 1, limit = 10): Promise<{ videos: Video[]; total: number }> {
-    const response = await apiClient.get('/api/public/videos', {
-      params: {
-        page,
-        limit,
-      },
-    });
-    
-    return {
-      videos: response.data.data.videos,
-      total: parseInt(response.headers['x-total-count'] || '0'),
-    };
+  async getVideos(page = 1, limit = 10) {
+    try {
+      const response = await apiClient.get('/api/videos', {
+        params: { page, limit }
+      });
+
+      if (response.data?.status === 'success' && response.data?.data) {
+        return {
+          videos: response.data.data.videos,
+          total: response.data.data.total
+        };
+      }
+
+      return {
+        videos: [],
+        total: 0
+      };
+    } catch (error) {
+      console.error('Failed to fetch videos:', error);
+      throw error;
+    }
   },
 
   async checkTitle(title: string): Promise<{ available: boolean }> {
@@ -64,70 +73,32 @@ export const VideoService = {
     return response.data.data.video;
   },
 
-  async updateVideo(
-    videoId: string,
-    formData: FormData,
-    onProgress?: (progress: number) => void
-  ): Promise<Video> {
+  async updateVideo(id: string, data: FormData | Record<string, any>, type: UpdateType): Promise<Video> {
     try {
-      console.log('🚀 Starting video update process...');
-
-      // Create new FormData with correct order
-      const orderedFormData = new FormData();
-      const fields = ['title', 'description', 'video', 'thumbnail'];
-      let hasChanges = false;
-
-      // Log and maintain order of fields
-      console.log('📦 Form data contents:');
-      fields.forEach(field => {
-        const value = formData.get(field);
-        if (value) {
-          if (value instanceof File || (typeof value === 'string' && value.trim())) {
-            orderedFormData.append(field, value);
-            hasChanges = true;
-            console.log(`- ${field}: ${value instanceof File ? value.name : value}`);
-          }
-        }
-      });
-
-      if (!hasChanges) {
-        console.log('❌ No changes detected in form data');
-        throw new Error('NO_CHANGES');
+      let response;
+      
+      switch(type) {
+        case 'metadata':
+          response = await apiClient.patch(`/api/videos/${id}`, data);
+          break;
+        
+        case 'all':
+          response = await apiClient.put(`/api/videos/${id}/update-all`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          break;
+          
+        case 'video':
+        case 'thumbnail':
+          response = await apiClient.put(`/api/videos/${id}/${type}`, data, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          break;
       }
 
-      console.log('🔄 Sending update request...');
-      const response = await apiClient.put(
-        `/api/videos/${videoId}/update-all`,
-        orderedFormData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (progressEvent) => {
-            if (onProgress && progressEvent.total) {
-              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              console.log(`📤 Upload progress: ${progress}%`);
-              onProgress(progress);
-            }
-          },
-        }
-      );
-
-      console.log('✅ Update successful:', response.data);
-      return response.data.data.video;
-    } catch (error: any) {
-      console.error('❌ Update error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
-      
-      if (error.message === 'NO_CHANGES') throw error;
-      if (error.response?.status === 401) throw new Error('Please login to update videos');
-      if (error.response?.status === 404) throw new Error('Video not found');
-      if (error.response?.data?.message) throw new Error(error.response.data.message);
-      
-      throw new Error('Failed to update video');
+      return response?.data?.data?.video;
+    } catch (error) {
+      throw this.handleError(error);
     }
   },
 

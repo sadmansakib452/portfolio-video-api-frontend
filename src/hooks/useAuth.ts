@@ -1,36 +1,67 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../lib/axios';
-import { useAuthStore } from './useAuthStore';
+import { useAuthStore } from '../store/auth.store';
 
 interface LoginCredentials {
-  login: string;  // Can be username or email
+  email: string;     // Changed from login to email
   password: string;
+}
+
+interface AuthError extends Error {
+  code: string;
+  status: number;
 }
 
 export function useAuth() {
   const navigate = useNavigate();
-  const { setAuth, clearAuth } = useAuthStore();
+  const { setAuth } = useAuthStore();
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
+  const login = async (credentials: LoginCredentials) => {
     try {
-      const response = await apiClient.post('/api/auth/login', credentials);
-      const { token, user } = response.data.data;
-      setAuth(user, token);
-      navigate('/dashboard');
-      return user;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw new Error('Invalid credentials');
+      console.log('Login attempt:', { email: credentials.email });
+      
+      // Using the correct endpoint without /api prefix
+      const response = await apiClient.post('api/auth/login', {
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      console.log('Login Response:', {
+        status: response.data?.status,
+        hasData: !!response.data?.data
+      });
+
+      if (response.data?.status === 'success' && response.data?.data) {
+        const { user, token } = response.data.data;
+        await setAuth(user, token);
+        return true;
+      }
+      
+      throw new Error('Invalid response format');
+    } catch (error: AuthError) {
+      console.error('Login error:', {
+        status: error.status,
+        message: error.message
+      });
+
+      switch (error.status) {
+        case 401:
+          throw new Error('Invalid credentials');
+        case 404:
+          throw new Error('Service not available');
+        default:
+          throw new Error(error.message || 'Login failed');
+      }
     }
-  }, [setAuth, navigate]);
+  };
 
   const logout = useCallback(() => {
     // Get theme data before clearing
     const themeData = localStorage.getItem('theme-storage');
     
     // Clear auth data
-    clearAuth();
+    useAuthStore.getState().clearAuth();
     
     // Clear storage but preserve theme
     localStorage.clear();
@@ -43,7 +74,7 @@ export function useAuth() {
     
     // Navigate to login
     navigate('/');
-  }, [navigate, clearAuth]);
+  }, [navigate]);
 
   const isAuthenticated = useCallback(() => {
     const state = useAuthStore.getState();

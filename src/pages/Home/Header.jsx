@@ -10,12 +10,14 @@ import {
 } from '@heroicons/react/24/outline';
 import headerimage from '../../assets/backgroundimages/Headerbackground.jpeg';
 import logoimage from '../../assets/logo/logo.png';
+import { useAuthStore } from '../../store/auth.store';
 
 const Header = () => {
   const { user } = useAuthContext();
   const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [barCount, setBarCount] = useState(150);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
 
   // Update bar count based on screen width
   useEffect(() => {
@@ -96,7 +98,7 @@ const Header = () => {
             >
               CONTACT
             </ScrollLink>
-            {user && (
+            {isAuthenticated && (
               <Link
                 to="/dashboard"
                 className="hover:text-yellow-400 transition-colors cursor-pointer"
@@ -111,7 +113,7 @@ const Header = () => {
             style={{ fontFamily: 'Gotham' }}
             className="hidden md:flex items-center space-x-6 sm:space-x-8 lg:space-x-11 text-sm sm:text-xl"
           >
-            {user ? (
+            {isAuthenticated ? (
               <button
                 onClick={handleSignOut}
                 className="hover:text-yellow-400 transition-colors cursor-pointer"
@@ -126,12 +128,6 @@ const Header = () => {
                   className="hover:text-yellow-400 transition-colors cursor-pointer"
                 >
                   SIGN IN
-                </Link>
-                <Link
-                  to="/auth/signup"
-                  className="hover:text-yellow-400 transition-colors cursor-pointer"
-                >
-                  SIGN UP
                 </Link>
               </>
             )}
@@ -150,7 +146,7 @@ const Header = () => {
       {/* Hero Section - Adjusted vertical position */}
       <main
         style={{ fontFamily: 'Gotham' }}
-        className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 flex flex-col items-center lg:items-start pt-[25vh] sm:pt-[20vh] md:pt-[25vh] lg:pt-[30vh]"
+        className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 flex flex-col items-center lg:items-start pt-[25vh] sm:pt-[20vh] md:pt-[25vh] lg:pt-[40vh]"
       >
         <div
           style={{ fontFamily: 'Gotham' }}
@@ -189,91 +185,91 @@ const Header = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`fixed inset-y-0 right-0 w-full bg-black transform ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        } transition-transform duration-300 ease-in-out md:hidden z-50`}
+        className={`fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity duration-300 ${
+          isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <div className="w-[180px]">
-            <img src={logoimage} alt="Dream Radio Logo" className="w-full" />
+        <nav
+          className={`fixed right-0 top-0 bottom-0 w-64 bg-black transform transition-transform duration-300 ease-in-out ${
+            isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <div className="w-[180px]">
+              <img src={logoimage} alt="Dream Radio Logo" className="w-full" />
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 text-white hover:text-yellow-400"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
           </div>
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="p-2 text-white hover:text-yellow-400"
-          >
-            <XMarkIcon className="h-6 w-6" />
-          </button>
-        </div>
 
-        <nav className="px-4 py-6 space-y-4">
-          <ScrollLink
-            to="work"
-            spy={true}
-            smooth={true}
-            offset={-100}
-            duration={800}
-            className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            WORK
-          </ScrollLink>
-          <ScrollLink
-            to="about"
-            spy={true}
-            smooth={true}
-            offset={-100}
-            duration={800}
-            className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            ABOUT
-          </ScrollLink>
-          <ScrollLink
-            to="contact"
-            spy={true}
-            smooth={true}
-            offset={-100}
-            duration={800}
-            className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            CONTACT
-          </ScrollLink>
-          {user ? (
-            <>
-              <Link
-                to="/dashboard"
-                className="block text-white hover:text-yellow-400 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                DASHBOARD
-              </Link>
-              <button
-                onClick={handleSignOut}
-                className="block w-full text-left text-white hover:text-yellow-400 transition-colors"
-                type="button"
-              >
-                SIGN OUT
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/auth/signin"
-                className="block text-white hover:text-yellow-400 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                SIGN IN
-              </Link>
-              <Link
-                to="/auth/signup"
-                className="block text-white hover:text-yellow-400 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                SIGN UP
-              </Link>
-            </>
-          )}
+          <nav className="px-4 py-6 space-y-4">
+            <ScrollLink
+              to="work"
+              spy={true}
+              smooth={true}
+              offset={-100}
+              duration={800}
+              className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              WORK
+            </ScrollLink>
+            <ScrollLink
+              to="about"
+              spy={true}
+              smooth={true}
+              offset={-100}
+              duration={800}
+              className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              ABOUT
+            </ScrollLink>
+            <ScrollLink
+              to="contact"
+              spy={true}
+              smooth={true}
+              offset={-100}
+              duration={800}
+              className="block text-white hover:text-yellow-400 transition-colors cursor-pointer"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              CONTACT
+            </ScrollLink>
+            {!isAuthenticated && (
+              <>
+                <Link
+                  to="/auth/signin"
+                  className="block text-white hover:text-yellow-400 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  SIGN IN
+                </Link>
+              </>
+            )}
+            {isAuthenticated && (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="block text-white hover:text-yellow-400 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  DASHBOARD
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="block w-full text-left text-white hover:text-yellow-400 transition-colors"
+                  type="button"
+                >
+                  SIGN OUT
+                </button>
+              </>
+            )}
+          </nav>
         </nav>
       </div>
 

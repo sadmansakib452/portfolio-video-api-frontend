@@ -43,12 +43,7 @@ const AboutSection = () => {
         </div>
       </div>
 
-      {/* Contact Footer */}
-      <div className="w-full bg-yellow-400 py-3 sm:py-4">
-        <h2 className="text-center text-xl sm:text-2xl font-semibold">
-          CONTACT
-        </h2>
-      </div>
+     
     </div>
   );
 };

@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Breadcrumb from '../../components/Breadcrumb';
 import { VideoService } from '../../services/videoService';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useVideoStore } from '../../store/video.store';
+import apiClient from '../../lib/axios';
 
 interface UploadForm {
   title: string;
@@ -21,8 +23,9 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const UploadVideo = () => {
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const { addVideo, setUploadProgress, uploadProgress } = useVideoStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -98,17 +101,48 @@ const UploadVideo = () => {
   const onSubmit = async (data: UploadForm) => {
     try {
       setIsUploading(true);
-      setUploadProgress(0);
 
-      await VideoService.uploadVideo(data, (progress) => {
-        setUploadProgress(Math.round(progress));
+      // Create FormData correctly
+      const formData = new FormData();
+      formData.append('title', data.title);
+      formData.append('description', data.description || '');
+
+      // Ensure files are properly appended
+      if (data.video?.[0]) {
+        formData.append('video', data.video[0]);
+      }
+
+      if (data.thumbnail?.[0]) {
+        formData.append('thumbnail', data.thumbnail[0]);
+      }
+
+      // Debug log
+      console.log('Uploading files:', {
+        video: data.video?.[0]?.name,
+        thumbnail: data.thumbnail?.[0]?.name,
       });
+
+      const response = await apiClient.post('/api/videos/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Ensure correct content type
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 0),
+          );
+          setUploadProgress(progress);
+        },
+      });
+
+      // Add video to store and invalidate queries
+      addVideo(response.data.video);
+      queryClient.invalidateQueries(['videos']);
 
       toast.success('Video uploaded successfully!');
       navigate('/dashboard/manage');
     } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Failed to upload video');
+      console.error('Upload failed:', error);
+      toast.error('Failed to upload video. Please try again.');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

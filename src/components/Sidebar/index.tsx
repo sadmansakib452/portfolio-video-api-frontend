@@ -5,19 +5,20 @@ import {
   HomeIcon,
   VideoCameraIcon,
   FilmIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
+import { useUIStore } from '../../store/ui.store';
+import { useAuthStore } from '../../store/auth.store';
 
-interface SidebarProps {
-  sidebarOpen: boolean;
-  setSidebarOpen: (arg: boolean) => void;
-}
-
-const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
+const Sidebar = () => {
+  const { sidebarOpen, closeSidebar, toggleSidebar } = useUIStore();
   const location = useLocation();
   const { pathname } = location;
+  const { user } = useAuthStore();
+  const isSuperAdmin = user?.role === 'super_admin';
 
   const trigger = useRef<any>(null);
-  const sidebar = useRef<any>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const storedSidebarExpanded = localStorage.getItem('sidebar-expanded');
   const [sidebarExpanded, setSidebarExpanded] = useState(
@@ -27,28 +28,44 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
-      if (!sidebar.current || !trigger.current) return;
+      if (!sidebarRef.current || !trigger.current) return;
       if (
         !sidebarOpen ||
-        sidebar.current.contains(target) ||
-        trigger.current.contains(target)
+        sidebarRef.current.contains(target as Node) ||
+        trigger.current.contains(target as Node)
       )
         return;
-      setSidebarOpen(false);
+      closeSidebar();
     };
     document.addEventListener('click', clickHandler);
     return () => document.removeEventListener('click', clickHandler);
-  });
+  }, [sidebarOpen, closeSidebar]);
 
   // close if the esc key is pressed
   useEffect(() => {
     const keyHandler = ({ keyCode }: KeyboardEvent) => {
       if (!sidebarOpen || keyCode !== 27) return;
-      setSidebarOpen(false);
+      closeSidebar();
     };
     document.addEventListener('keydown', keyHandler);
     return () => document.removeEventListener('keydown', keyHandler);
-  });
+  }, [sidebarOpen, closeSidebar]);
+
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sidebarOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        closeSidebar();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [sidebarOpen, closeSidebar]);
 
   useEffect(() => {
     localStorage.setItem('sidebar-expanded', sidebarExpanded.toString());
@@ -87,7 +104,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
   return (
     <aside
-      ref={sidebar}
+      ref={sidebarRef}
       className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
@@ -107,7 +124,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
         <button
           ref={trigger}
-          onClick={() => setSidebarOpen(!sidebarOpen)}
+          onClick={closeSidebar}
           aria-controls="sidebar"
           aria-expanded={sidebarOpen}
           className="block lg:hidden"
@@ -153,6 +170,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </li>
                 );
               })}
+              {isSuperAdmin && (
+                <li>
+                  <NavLink
+                    to="/dashboard/admins"
+                    className={({ isActive }) =>
+                      `group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                        isActive ? 'bg-graydark dark:bg-meta-4' : ''
+                      }`
+                    }
+                  >
+                    <UserGroupIcon className="h-6 w-6" />
+                    Admin Management
+                  </NavLink>
+                </li>
+              )}
             </ul>
           </div>
         </nav>

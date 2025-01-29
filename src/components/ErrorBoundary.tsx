@@ -26,14 +26,12 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="flex h-screen items-center justify-center bg-white dark:bg-boxdark">
+        <div className="flex h-screen items-center justify-center">
           <div className="text-center">
-            <h1 className="mb-4 text-2xl font-bold text-black dark:text-white">
+            <h1 className="text-xl font-bold text-danger mb-4">
               Something went wrong
             </h1>
-            <pre className="text-sm text-danger">
-              {this.state.error?.toString()}
-            </pre>
+            <pre className="text-sm text-body">{this.state.error?.message}</pre>
           </div>
         </div>
       );

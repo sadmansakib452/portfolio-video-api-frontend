@@ -1,20 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { useAuthContext } from '../../contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/auth.store';
 import {
-  ArrowRightOnRectangleIcon,
-  ChevronDownIcon,
   HomeIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { logout } = useAuth();
-  const { user } = useAuthContext();
+  const navigate = useNavigate();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const user = useAuthStore((state) => state.user);
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
+
+  // Handle logout click
+  const handleLogout = () => {
+    clearAuth();
+    navigate('/login');
+  };
 
   // close on click outside
   useEffect(() => {
@@ -42,34 +47,38 @@ const DropdownUser = () => {
     return () => document.removeEventListener('keydown', keyHandler);
   });
 
-  const handleLogout = () => {
-    logout();
-    setDropdownOpen(false);
-  };
-
   return (
     <div className="relative">
-      <Link
+      <div
         ref={trigger}
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="flex items-center gap-2"
-        to="#"
+        className="flex items-center gap-4 cursor-pointer"
       >
-        <div className="flex flex-col items-end">
+        <span className="text-right">
           <span className="block text-sm font-medium text-black dark:text-white">
-            {user?.name || user?.username || 'Guest'}
+            {user?.username || 'User'}
           </span>
-          <span className="block text-xs font-medium text-gray-600 dark:text-gray-400">
-            {user?.role || 'User'}
-          </span>
-        </div>
-        <ChevronDownIcon
-          className={`h-4 w-4 text-current transition-transform duration-200 ${
-            dropdownOpen ? 'rotate-180' : ''
-          }`}
-        />
-      </Link>
+          <span className="block text-xs">{user?.role || 'Role'}</span>
+        </span>
 
+        <svg
+          className={`fill-current ${dropdownOpen ? 'rotate-180' : ''}`}
+          width="12"
+          height="8"
+          viewBox="0 0 12 8"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M0.410765 0.910734C0.736202 0.585297 1.26384 0.585297 1.58928 0.910734L6.00002 5.32148L10.4108 0.910734C10.7362 0.585297 11.2638 0.585297 11.5893 0.910734C11.9147 1.23617 11.9147 1.76381 11.5893 2.08924L6.58928 7.08924C6.26384 7.41468 5.7362 7.41468 5.41077 7.08924L0.410765 2.08924C0.0853277 1.76381 0.0853277 1.23617 0.410765 0.910734Z"
+            fill=""
+          />
+        </svg>
+      </div>
+
+      {/* Dropdown Start */}
       <div
         ref={dropdown}
         className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${
@@ -85,12 +94,13 @@ const DropdownUser = () => {
         </Link>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+          className="flex items-center gap-3.5 py-4 px-6 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
         >
           <ArrowRightOnRectangleIcon className="h-5 w-5" />
           Log Out
         </button>
       </div>
+      {/* Dropdown End */}
     </div>
   );
 };

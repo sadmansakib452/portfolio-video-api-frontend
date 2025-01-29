@@ -1,47 +1,23 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import { useAuth } from '../../hooks/useAuth';
-import { useAuthStore } from '../../store/auth.store';
+import { usePasswordReset } from '../../hooks/usePasswordReset';
 import Logo from '../../assets/logo/logo.png';
 
-interface SignInForm {
+interface RequestResetForm {
   email: string;
-  password: string;
 }
 
-const SignIn = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
-
+const RequestResetPassword = () => {
+  const { requestReset, isRequestingReset } = usePasswordReset();
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignInForm>();
+  } = useForm<RequestResetForm>();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
-  const onSubmit = async (data: SignInForm) => {
-    setIsLoading(true);
-    try {
-      await login(data);
-      const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = async (data: RequestResetForm) => {
+    await requestReset.mutateAsync(data.email);
   };
 
   return (
@@ -53,7 +29,7 @@ const SignIn = () => {
           </Link>
 
           <h2 className="mb-9 text-2xl font-bold text-black dark:text-white">
-            Sign In to Your Account
+            Forgot Password
           </h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
@@ -80,43 +56,47 @@ const SignIn = () => {
               )}
             </div>
 
-            <div className="mb-6">
-              <label className="mb-2.5 block font-medium text-black dark:text-white">
-                Password
-              </label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                {...register('password', {
-                  required: 'This field is required',
-                })}
-                className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 outline-none focus:border-primary focus-visible:shadow-none dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-              />
-              {errors.password && (
-                <p className="mt-1 text-xs text-danger">
-                  {errors.password.message}
-                </p>
-              )}
-            </div>
-
             <div className="mb-5">
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isRequestingReset}
                 className="w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90 disabled:cursor-not-allowed disabled:bg-opacity-50"
               >
-                {isLoading ? 'Signing in...' : 'Sign In'}
+                {isRequestingReset ? (
+                  <div className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Sending Reset Instructions...
+                  </div>
+                ) : (
+                  'Send Reset Link'
+                )}
               </button>
             </div>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-black dark:text-white">
-                Trouble signing in?{' '}
-                <Link
-                  to="/auth/forgot-password"
-                  className="text-primary hover:underline"
-                >
-                  Forgot Password?
+                Remember your password?{' '}
+                <Link to="/login" className="text-primary hover:underline">
+                  Back to Sign In
                 </Link>
               </p>
             </div>
@@ -127,4 +107,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default RequestResetPassword; 

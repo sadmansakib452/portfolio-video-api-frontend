@@ -1,28 +1,29 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../hooks/useAuthStore';
-import { useEffect } from 'react';
+import { useAuthStore } from '../store/auth.store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { token, user } = useAuthStore();
   const location = useLocation();
-
-  // Debug logs
-  useEffect(() => {
-    console.log('ProtectedRoute check:', {
-      token,
-      user,
+  const isAuthenticated = useAuthStore((state) => {
+    const auth = state.isAuthenticated();
+    console.log('Auth check in ProtectedRoute:', {
+      hasAuth: auth,
       path: location.pathname,
+      token: state.token?.substring(0, 10) + '...',
     });
-  }, [token, user, location]);
+    return auth;
+  });
 
-  if (!token || !user) {
-    console.log('Redirecting to login - no auth');
+  if (!isAuthenticated) {
+    console.log('Redirecting - No auth found');
     return <Navigate to="/auth/signin" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
 };
+
+// Add both default and named exports
+export default ProtectedRoute;
